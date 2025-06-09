@@ -1,0 +1,164 @@
+{
+  "grammar_tips": [
+    {
+      "title": "De vs Het - Basic Rules",
+      "explanation": "Most Dutch nouns use 'de' (75%), but some use 'het'. Common 'het' words include diminutives (-je, -tje), infinitives used as nouns, and metals/languages.",
+      "dutch_example": "de man, het huis, het meisje",
+      "english_example": "the man, the house, the girl",
+      "category": "articles",
+      "applicable_categories": ["family", "people", "objects", "home", "animals"],
+      "word_patterns": ["-je", "-tje", "-pje"],
+      "specific_words": ["man", "vrouw", "huis", "kind", "meisje"]
+    },
+    {
+      "title": "Verb Past Tense Formation",
+      "explanation": "Dutch past tense is formed by adding -de/-te to the verb stem. Use -te after unvoiced consonants (t, k, f, s, ch, p), otherwise use -de.",
+      "dutch_example": "werken → werkte, maken → maakte",
+      "english_example": "to work → worked, to make → made",
+      "category": "verbs",
+      "applicable_categories": ["verbs"],
+      "word_patterns": ["-en"],
+      "specific_words": ["werken", "maken", "hebben", "zijn", "gaan", "komen", "kopen", "spelen"]
+    },
+    {
+      "title": "Plural Formation with -en",
+      "explanation": "Most Dutch nouns form their plural by adding -en. This is the most common plural form in Dutch.",
+      "dutch_example": "hond → honden, kat → katten",
+      "english_example": "dog → dogs, cat → cats",
+      "category": "plurals",
+      "applicable_categories": ["animals", "objects", "people"],
+      "word_patterns": [],
+      "specific_words": ["hond", "kat", "auto", "tafel", "stoel"]
+    },
+    {
+      "title": "Adjective Endings with -e",
+      "explanation": "Dutch adjectives get an -e ending when used before the noun with 'de' or 'het' (definite), or before plural nouns.",
+      "dutch_example": "de grote hond, een groot huis",
+      "english_example": "the big dog, a big house",
+      "category": "adjectives",
+      "applicable_categories": ["adjectives"],
+      "word_patterns": [],
+      "specific_words": ["groot", "klein", "goed", "slecht", "mooi", "lelijk", "oud", "nieuw"]
+    },
+    {
+      "title": "Modal Verbs Usage",
+      "explanation": "Dutch modal verbs (kunnen, willen, moeten, mogen) are followed by an infinitive that goes to the end of the sentence.",
+      "dutch_example": "Ik kan Nederlands spreken",
+      "english_example": "I can speak Dutch",
+      "category": "verbs",
+      "applicable_categories": ["verbs"],
+      "word_patterns": [],
+      "specific_words": ["kunnen", "willen", "moeten", "mogen", "zullen"]
+    },
+    {
+      "title": "Separable Verbs",
+      "explanation": "Many Dutch verbs have separable prefixes. In present tense, the prefix goes to the end of the sentence.",
+      "dutch_example": "opstaan → Ik sta om 7 uur op",
+      "english_example": "to get up → I get up at 7 o'clock",
+      "category": "verbs",
+      "applicable_categories": ["verbs"],
+      "word_patterns": ["op-", "aan-", "uit-", "mee-", "af-"],
+      "specific_words": ["opstaan", "aankomen", "uitstaan", "meekomen"]
+    },
+    {
+      "title": "Diminutives Always Use 'Het'",
+      "explanation": "All diminutives (words ending in -je, -tje, -etje, -pje) always use 'het', regardless of the gender of the original word.",
+      "dutch_example": "de kat → het katje, de boom → het boompje",
+      "english_example": "the cat → the little cat, the tree → the little tree",
+      "category": "articles",
+      "applicable_categories": ["animals", "objects", "family"],
+      "word_patterns": ["-je", "-tje", "-etje", "-pje"],
+      "specific_words": ["katje", "hondje", "huisje", "meisje", "boompje"]
+    },
+    {
+      "title": "Past Participle Formation",
+      "explanation": "Dutch past participles usually start with 'ge-' and end with -d or -t. Use -t after unvoiced consonants, -d otherwise.",
+      "dutch_example": "werken → gewerkt, maken → gemaakt",
+      "english_example": "to work → worked, to make → made",
+      "category": "verbs",
+      "applicable_categories": ["verbs"],
+      "word_patterns": ["-en"],
+      "specific_words": ["werken", "maken", "spelen", "kopen", "lopen", "spreken"]
+    },
+    {
+      "title": "Dutch Word Order (V2 Rule)",
+      "explanation": "In Dutch main clauses, the finite verb always comes second. This is called the V2 rule.",
+      "dutch_example": "Vandaag ga ik naar school",
+      "english_example": "Today I go to school",
+      "category": "word_order",
+      "applicable_categories": ["verbs"],
+      "word_patterns": [],
+      "specific_words": ["gaan", "zijn", "hebben", "worden"]
+    },
+    {
+      "title": "Body Parts with Articles",
+      "explanation": "Most body parts use 'de' article in Dutch. Some exceptions use 'het': het hoofd (head), het lichaam (body), het hart (heart).",
+      "dutch_example": "de hand, het hoofd, de voet",
+      "english_example": "the hand, the head, the foot",
+      "category": "articles",
+      "applicable_categories": ["body"],
+      "word_patterns": [],
+      "specific_words": ["hoofd", "hand", "voet", "oog", "mond", "haar", "oor", "gezicht", "nek", "arm", "been", "vinger", "teen", "rug", "borst", "buik", "hart", "brein", "tand", "tong", "huid", "bloed", "bot", "spier"]
+    },
+    {
+      "title": "Compound Words with -kamer",
+      "explanation": "Many rooms in Dutch are formed by adding '-kamer' (room) to a function word: slaap+kamer, bad+kamer, woon+kamer, eet+kamer.",
+      "dutch_example": "de slaapkamer, de badkamer, de woonkamer",
+      "english_example": "the bedroom, the bathroom, the living room",
+      "category": "word_formation",
+      "applicable_categories": ["home"],
+      "word_patterns": ["-kamer"],
+      "specific_words": ["slaapkamer", "badkamer", "woonkamer", "eetkamer"]
+    },
+    {
+      "title": "Home Appliances with 'Het'",
+      "explanation": "Most household appliances and technical devices use 'het': het fornuis, het bed, het raam. But 'de' is used for: de keuken, de tuin, de garage.",
+      "dutch_example": "het fornuis, de keuken, het raam",
+      "english_example": "the stove, the kitchen, the window",
+      "category": "articles",
+      "applicable_categories": ["home"],
+      "word_patterns": [],
+      "specific_words": ["fornuis", "bed", "raam", "dak", "plafond", "huis", "keuken", "tuin", "garage", "muur", "vloer", "tafel", "stoel", "deur", "bank"]
+    },
+    {
+      "title": "Compound Appliances",
+      "explanation": "Dutch combines words to name appliances: koel+kast (refrigerator), was+machine (washing machine), stofzuiger (vacuum = dust sucker).",
+      "dutch_example": "de koelkast, de wasmachine, de stofzuiger",
+      "english_example": "the refrigerator, the washing machine, the vacuum cleaner",
+      "category": "word_formation",
+      "applicable_categories": ["home"],
+      "word_patterns": [],
+      "specific_words": ["koelkast", "wasmachine", "vaatwasser", "stofzuiger", "strijkijzer", "magnetron"]
+    },
+    {
+      "title": "Location in the House",
+      "explanation": "Use 'in de/het' for inside rooms: 'in de keuken', 'in het huis'. Use 'op' for surfaces: 'op de tafel', 'op de vloer'.",
+      "dutch_example": "in de keuken, op de tafel, in het huis",
+      "english_example": "in the kitchen, on the table, in the house",
+      "category": "prepositions",
+      "applicable_categories": ["home"],
+      "word_patterns": [],
+      "specific_words": ["keuken", "huis", "kamer", "tafel", "vloer", "bed"]
+    },
+    {
+      "title": "Rooms and Spaces Articles",
+      "explanation": "Most rooms use 'de': de keuken, de kamer, de tuin, de garage. But 'het huis' (the house) uses 'het'.",
+      "dutch_example": "de keuken, de kamer, het huis",
+      "english_example": "the kitchen, the room, the house",
+      "category": "articles",
+      "applicable_categories": ["home"],
+      "word_patterns": [],
+      "specific_words": ["keuken", "kamer", "badkamer", "slaapkamer", "woonkamer", "eetkamer", "tuin", "garage", "kelder", "zolder", "huis"]
+    },
+    {
+      "title": "Prepositions with Location",
+      "explanation": "Dutch uses different prepositions for location vs. direction. 'in/op/aan' for location, 'naar/in' for direction.",
+      "dutch_example": "in het huis (location), naar het huis (direction)",
+      "english_example": "in the house (location), to the house (direction)",
+      "category": "prepositions",
+      "applicable_categories": ["particles"],
+      "word_patterns": [],
+      "specific_words": ["in", "op", "aan", "naar", "van", "met"]
+    }
+  ]
+} 
