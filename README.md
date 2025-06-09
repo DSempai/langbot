@@ -25,7 +25,7 @@ A sophisticated Telegram bot for learning Dutch vocabulary using spaced repetiti
 - **Performance Analytics**: Track your learning progress and retention rates
 
 ### 🏠 Rich Vocabulary Database
-- **500+ Words** across multiple categories:
+- **380+ Words** across multiple categories:
   - Home & Household items
   - Body parts
   - Family & People
@@ -38,7 +38,7 @@ A sophisticated Telegram bot for learning Dutch vocabulary using spaced repetiti
 
 ### Prerequisites
 - Go 1.21 or higher
-- Telegram Bot Token (from [@BotFather](https://t.me/botfather))
+- Telegram Bot Token (create one with [@BotFather](https://t.me/botfather) by sending `/newbot`)
 - SQLite (automatically handled)
 
 ### Installation
@@ -103,16 +103,14 @@ The project follows DDD principles with clear separation of concerns:
 
 ```
 internal/
-├── domain/                 # Core business logic
-│   ├── entities/          # Domain entities (User, Word, etc.)
-│   ├── repositories/      # Repository interfaces
-│   └── services/          # Domain services
-├── application/           # Application layer
-│   └── usecases/         # Use cases and business workflows
+├── application/usecases/   # Application layer - business workflows
+├── domain/                # Core business logic
+│   ├── entities/         # Domain entities (User, Word, GrammarTip, etc.)
+│   ├── repositories/     # Repository interfaces
+│   └── services/         # Domain services (FSRS, learning logic)
 ├── infrastructure/       # External concerns
-│   └── persistence/      # Database implementations
-└── interfaces/           # Interface adapters
-    └── telegram/         # Telegram bot handlers
+│   └── persistence/      # SQLite database implementations
+└── interfaces/telegram/  # Interface adapters - Telegram bot handlers
 ```
 
 ### Key Components
@@ -151,8 +149,15 @@ The bot includes intelligent grammar tips that appear contextually:
 langbot/
 ├── cmd/bot/main.go           # Application entry point
 ├── internal/                 # Private application code
-├── vocabulary.json           # Vocabulary database
-├── grammar_tips.json         # Grammar tips database
+│   ├── application/usecases/ # Use cases and business workflows
+│   ├── domain/              # Core business logic (entities, repositories)
+│   ├── infrastructure/      # Database and external integrations
+│   └── interfaces/telegram/ # Telegram bot handlers
+├── vocabulary.json           # Vocabulary database (380+ words)
+├── grammar_tips.json         # Contextual grammar tips database (16 tips)
+├── .env.example             # Environment configuration template
+├── .gitignore               # Git ignore rules
+├── run_bot.sh               # Bot startup script
 ├── go.mod                   # Go module definition
 └── README.md                # This file
 ```
