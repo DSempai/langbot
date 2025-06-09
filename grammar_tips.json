@@ -105,7 +105,7 @@
       "explanation": "Many rooms in Dutch are formed by adding '-kamer' (room) to a function word: slaap+kamer, bad+kamer, woon+kamer, eet+kamer.",
       "dutch_example": "de slaapkamer, de badkamer, de woonkamer",
       "english_example": "the bedroom, the bathroom, the living room",
-      "category": "word_formation",
+      "category": "general",
       "applicable_categories": ["home"],
       "word_patterns": ["-kamer"],
       "specific_words": ["slaapkamer", "badkamer", "woonkamer", "eetkamer"]
@@ -125,7 +125,7 @@
       "explanation": "Dutch combines words to name appliances: koel+kast (refrigerator), was+machine (washing machine), stofzuiger (vacuum = dust sucker).",
       "dutch_example": "de koelkast, de wasmachine, de stofzuiger",
       "english_example": "the refrigerator, the washing machine, the vacuum cleaner",
-      "category": "word_formation",
+      "category": "general",
       "applicable_categories": ["home"],
       "word_patterns": [],
       "specific_words": ["koelkast", "wasmachine", "vaatwasser", "stofzuiger", "strijkijzer", "magnetron"]
