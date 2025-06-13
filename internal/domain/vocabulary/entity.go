@@ -15,17 +15,21 @@ type ID int64
 type Category string
 
 const (
-	CategoryFamily     Category = "family"
-	CategoryBody       Category = "body"
-	CategoryColors     Category = "colors"
-	CategoryFood       Category = "food"
-	CategoryAnimals    Category = "animals"
-	CategoryHome       Category = "home"
-	CategoryObjects    Category = "objects"
-	CategoryPeople     Category = "people"
-	CategoryAdjectives Category = "adjectives"
-	CategoryVerbs      Category = "verbs"
-	CategoryParticles  Category = "particles"
+	CategoryFamily          Category = "family"
+	CategoryBody            Category = "body"
+	CategoryColors          Category = "colors"
+	CategoryFood            Category = "food"
+	CategoryAnimals         Category = "animals"
+	CategoryHome            Category = "home"
+	CategoryObjects         Category = "objects"
+	CategoryPeople          Category = "people"
+	CategoryAdjectives      Category = "adjectives"
+	CategoryVerbs           Category = "verbs"
+	CategoryParticles       Category = "particles"
+	CategoryPrepositions    Category = "prepositions"
+	CategoryVerbsAction     Category = "verbs_action"
+	CategoryVerbsInfinitive Category = "verbs_infinitive"
+	CategoryRoadSigns       Category = "road_signs"
 )
 
 // NewWord creates a new vocabulary word
@@ -53,7 +57,9 @@ func IsValidCategory(category string) bool {
 	switch Category(category) {
 	case CategoryFamily, CategoryBody, CategoryColors, CategoryFood,
 		CategoryAnimals, CategoryHome, CategoryObjects, CategoryPeople,
-		CategoryAdjectives, CategoryVerbs, CategoryParticles:
+		CategoryAdjectives, CategoryVerbs, CategoryParticles,
+		CategoryPrepositions, CategoryVerbsAction, CategoryVerbsInfinitive,
+		CategoryRoadSigns:
 		return true
 	default:
 		return false

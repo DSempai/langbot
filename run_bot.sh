@@ -121,10 +121,90 @@ else
     exit 1
 fi
 
-# Check if database exists, if not, it will be created automatically
-if [ ! -f "dutch_learning.db" ]; then
-    print_info "Database will be created on first run"
-fi
+# Database and migration handling
+DB_NAME="dutch_learning.db"
+MIGRATION_FILE="migrate_categories.sql"
+
+# Function to run database migration
+run_migration() {
+    if [ ! -f "$MIGRATION_FILE" ]; then
+        print_warning "Migration file $MIGRATION_FILE not found - skipping migration"
+        return 0
+    fi
+    
+    if [ ! -f "$DB_NAME" ]; then
+        print_info "Database doesn't exist yet - will be created on first run"
+        return 0
+    fi
+    
+    # Check if tables exist
+    TABLES_EXIST=$(sqlite3 "$DB_NAME" "SELECT name FROM sqlite_master WHERE type='table' AND name='words';" 2>/dev/null || echo "")
+    if [ -z "$TABLES_EXIST" ]; then
+        print_info "Database tables don't exist yet - migration will run after initial setup"
+        return 0
+    fi
+    
+    print_info "Checking if database migration is needed..."
+    
+    # Backup existing database
+    BACKUP_NAME="${DB_NAME}.backup.$(date +%Y%m%d_%H%M%S)"
+    print_info "Creating database backup: $BACKUP_NAME"
+    cp "$DB_NAME" "$BACKUP_NAME"
+    
+    # Check if migration is needed (look for old categories)
+    OLD_CATEGORIES=$(sqlite3 "$DB_NAME" "SELECT COUNT(*) FROM words WHERE category IN ('particles', 'verbs', 'common_verbs') LIMIT 1;" 2>/dev/null || echo "0")
+    
+    if [ "$OLD_CATEGORIES" -gt 0 ]; then
+        print_info "Old categories detected. Running migration..."
+        if sqlite3 "$DB_NAME" < "$MIGRATION_FILE"; then
+            print_success "Database migration completed successfully"
+            
+            # Show new category distribution
+            print_info "New category distribution:"
+            sqlite3 "$DB_NAME" "SELECT category, COUNT(*) as count FROM words GROUP BY category ORDER BY count DESC;" 2>/dev/null || true
+        else
+            print_error "Migration failed. Database backup preserved."
+            exit 1
+        fi
+    else
+        print_info "No migration needed - database already up to date"
+        # Remove backup since no changes were made
+        rm "$BACKUP_NAME" 2>/dev/null || true
+    fi
+}
+
+# Function to run delayed migration (after bot creates tables)
+run_delayed_migration() {
+    if [ -f "$MIGRATION_FILE" ] && [ -f "$DB_NAME" ]; then
+        # Wait a bit for bot to create tables and load initial data
+        sleep 5
+        
+        # Check if tables now exist and have old categories
+        TABLES_EXIST=$(sqlite3 "$DB_NAME" "SELECT name FROM sqlite_master WHERE type='table' AND name='words';" 2>/dev/null || echo "")
+        if [ -n "$TABLES_EXIST" ]; then
+            OLD_CATEGORIES=$(sqlite3 "$DB_NAME" "SELECT COUNT(*) FROM words WHERE category IN ('particles', 'verbs', 'common_verbs') LIMIT 1;" 2>/dev/null || echo "0")
+            
+            if [ "$OLD_CATEGORIES" -gt 0 ]; then
+                print_info "Running delayed migration after database initialization..."
+                
+                # Backup before migration
+                BACKUP_NAME="${DB_NAME}.backup.delayed.$(date +%Y%m%d_%H%M%S)"
+                cp "$DB_NAME" "$BACKUP_NAME"
+                
+                if sqlite3 "$DB_NAME" < "$MIGRATION_FILE"; then
+                    print_success "Delayed migration completed successfully"
+                    print_info "New category distribution:"
+                    sqlite3 "$DB_NAME" "SELECT category, COUNT(*) as count FROM words GROUP BY category ORDER BY count DESC;" 2>/dev/null || true
+                else
+                    print_error "Delayed migration failed"
+                fi
+            fi
+        fi
+    fi
+}
+
+# Run migration before starting the bot
+run_migration
 
 # Check if vocabulary file exists
 if [ ! -f "vocabulary.json" ]; then
@@ -137,13 +217,27 @@ run_bot() {
     local restart_count=0
     local max_restarts=5
     local restart_delay=5
+    local migration_attempted=false
 
     while [ $restart_count -lt $max_restarts ]; do
         print_info "Starting Dutch Learning Bot... (attempt $((restart_count + 1)))"
         echo "$(date): Starting bot (attempt $((restart_count + 1)))" >> logs/bot.log
         
-        # Run the bot and capture exit code
-        if ./bot 2>&1 | tee -a logs/bot.log; then
+        # Start bot in background for migration check
+        ./bot 2>&1 | tee -a logs/bot.log &
+        local bot_pid=$!
+        
+        # Run delayed migration after a short delay (only on first attempt)
+        if [ "$restart_count" -eq 0 ] && [ "$migration_attempted" = false ]; then
+            migration_attempted=true
+            (
+                sleep 10  # Give bot time to create database and load data
+                run_delayed_migration
+            ) &
+        fi
+        
+        # Wait for bot to finish
+        if wait $bot_pid; then
             print_success "Bot exited normally"
             break
         else

@@ -3,6 +3,7 @@ package persistence
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -12,6 +13,17 @@ func NewSQLiteDB(dbPath string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
+	}
+
+	// Configure connection pool
+	db.SetMaxOpenConns(25)                 // Maximum number of open connections
+	db.SetMaxIdleConns(5)                  // Maximum number of idle connections
+	db.SetConnMaxLifetime(5 * time.Minute) // Maximum lifetime of a connection
+	db.SetConnMaxIdleTime(1 * time.Minute) // Maximum idle time of a connection
+
+	// Test the connection
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
 	if err := createTables(db); err != nil {
@@ -47,9 +59,8 @@ func createTables(db *sql.DB) error {
 		user_id INTEGER NOT NULL,
 		preference_key TEXT NOT NULL,
 		preference_value TEXT NOT NULL,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		FOREIGN KEY (user_id) REFERENCES users(id),
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
 		UNIQUE(user_id, preference_key)
 	);`
 
@@ -140,6 +151,37 @@ func createTables(db *sql.DB) error {
 	_, err = db.Exec(grammarTipsTable)
 	if err != nil {
 		return fmt.Errorf("failed to create grammar_tips table: %w", err)
+	}
+
+	// Create indexes for better query performance
+	indexes := []string{
+		"CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id);",
+		"CREATE INDEX IF NOT EXISTS idx_user_preferences_user_id ON user_preferences(user_id);",
+		"CREATE INDEX IF NOT EXISTS idx_user_preferences_user_key ON user_preferences(user_id, preference_key);",
+		"CREATE INDEX IF NOT EXISTS idx_words_category ON words(category);",
+		"CREATE INDEX IF NOT EXISTS idx_words_english ON words(english);",
+		"CREATE INDEX IF NOT EXISTS idx_words_dutch ON words(dutch);",
+		"CREATE INDEX IF NOT EXISTS idx_user_progress_user_id ON user_progress(user_id);",
+		"CREATE INDEX IF NOT EXISTS idx_user_progress_word_id ON user_progress(word_id);",
+		"CREATE INDEX IF NOT EXISTS idx_user_progress_due_date ON user_progress(due_date);",
+		"CREATE INDEX IF NOT EXISTS idx_user_progress_user_due ON user_progress(user_id, due_date);",
+		"CREATE INDEX IF NOT EXISTS idx_user_progress_state ON user_progress(state);",
+		"CREATE INDEX IF NOT EXISTS idx_review_history_user_id ON review_history(user_id);",
+		"CREATE INDEX IF NOT EXISTS idx_review_history_word_id ON review_history(word_id);",
+		"CREATE INDEX IF NOT EXISTS idx_review_history_user_word ON review_history(user_id, word_id);",
+		"CREATE INDEX IF NOT EXISTS idx_grammar_tips_category ON grammar_tips(category);",
+		// Add composite indexes for common query patterns
+		"CREATE INDEX IF NOT EXISTS idx_user_progress_user_word ON user_progress(user_id, word_id);",
+		"CREATE INDEX IF NOT EXISTS idx_review_history_user_time ON review_history(user_id, review_time);",
+		"CREATE INDEX IF NOT EXISTS idx_user_progress_user_state ON user_progress(user_id, state);",
+		"CREATE INDEX IF NOT EXISTS idx_user_progress_due_state ON user_progress(due_date, state);",
+	}
+
+	for _, idx := range indexes {
+		_, err = db.Exec(idx)
+		if err != nil {
+			return fmt.Errorf("failed to create index: %w", err)
+		}
 	}
 
 	return nil

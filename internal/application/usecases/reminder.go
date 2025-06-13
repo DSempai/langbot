@@ -27,21 +27,22 @@ type ReminderConfig struct {
 // DefaultReminderConfig returns sensible defaults for reminders
 func DefaultReminderConfig() *ReminderConfig {
 	return &ReminderConfig{
-		CheckInterval:       30 * time.Minute, // Check every 30 minutes
-		MinReminderInterval: 4 * time.Hour,    // Don't remind more than once every 4 hours
-		QuietHoursStart:     22,               // 10 PM
-		QuietHoursEnd:       8,                // 8 AM
-		MaxRemindersPerDay:  3,                // Max 3 reminders per day
+		CheckInterval:       1 * time.Minute, // Check every minute to support minimum interval
+		MinReminderInterval: 4 * time.Hour,   // Don't remind more than once every 4 hours
+		QuietHoursStart:     22,              // 10 PM
+		QuietHoursEnd:       8,               // 8 AM
+		MaxRemindersPerDay:  3,               // Max 3 reminders per day
 	}
 }
 
 // ReminderUseCase handles smart reminder functionality
 type ReminderUseCase struct {
-	bot           *telegram.Bot
-	userRepo      user.Repository
-	learningRepo  learning.Repository
-	config        *ReminderConfig
-	reminderState map[user.ID]*UserReminderState
+	bot             *telegram.Bot
+	userRepo        user.Repository
+	learningRepo    learning.Repository
+	preferencesRepo user.PreferencesRepository
+	config          *ReminderConfig
+	reminderState   map[user.ID]*UserReminderState
 }
 
 // UserReminderState tracks reminder state for each user
@@ -56,6 +57,7 @@ func NewReminderUseCase(
 	bot *telegram.Bot,
 	userRepo user.Repository,
 	learningRepo learning.Repository,
+	preferencesRepo user.PreferencesRepository,
 	config *ReminderConfig,
 ) *ReminderUseCase {
 	if config == nil {
@@ -63,11 +65,12 @@ func NewReminderUseCase(
 	}
 
 	return &ReminderUseCase{
-		bot:           bot,
-		userRepo:      userRepo,
-		learningRepo:  learningRepo,
-		config:        config,
-		reminderState: make(map[user.ID]*UserReminderState),
+		bot:             bot,
+		userRepo:        userRepo,
+		learningRepo:    learningRepo,
+		preferencesRepo: preferencesRepo,
+		config:          config,
+		reminderState:   make(map[user.ID]*UserReminderState),
 	}
 }
 
@@ -124,6 +127,18 @@ func (uc *ReminderUseCase) shouldSendReminder(ctx context.Context, u *user.User)
 		return false
 	}
 
+	// Get user preferences
+	preferences, err := uc.preferencesRepo.FindPreferences(ctx, userID)
+	if err != nil {
+		log.Printf("Failed to get user preferences: %v", err)
+		return false
+	}
+
+	// Check if reminders are enabled
+	if !preferences.SmartRemindersEnabled() {
+		return false
+	}
+
 	// Get or create reminder state for this user
 	state, exists := uc.reminderState[userID]
 	if !exists {
@@ -144,8 +159,11 @@ func (uc *ReminderUseCase) shouldSendReminder(ctx context.Context, u *user.User)
 		return false
 	}
 
-	// Check minimum interval between reminders
-	if now.Sub(state.LastReminderSent) < uc.config.MinReminderInterval {
+	// Get user's preferred reminder interval
+	reminderInterval := time.Duration(preferences.GetReminderInterval()) * time.Minute
+
+	// Check minimum interval between reminders using user's preferred interval
+	if now.Sub(state.LastReminderSent) < reminderInterval {
 		return false
 	}
 
@@ -180,12 +198,12 @@ func (uc *ReminderUseCase) shouldSendReminder(ctx context.Context, u *user.User)
 	hoursSinceLastReminder := now.Sub(state.LastReminderSent).Hours()
 
 	// If user has many due words (5+), remind sooner
-	if stats.DueWords >= 5 && hoursSinceLastReminder >= 6 {
+	if stats.DueWords >= 5 && hoursSinceLastReminder >= float64(reminderInterval.Hours())/2 {
 		return true
 	}
 
-	// If user has some due words (1-4), remind after longer interval
-	if stats.DueWords >= 1 && hoursSinceLastReminder >= 12 {
+	// If user has some due words (1-4), remind after normal interval
+	if stats.DueWords >= 1 && hoursSinceLastReminder >= float64(reminderInterval.Hours()) {
 		return true
 	}
 

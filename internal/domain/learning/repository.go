@@ -21,6 +21,9 @@ type Repository interface {
 	// FindDueWords retrieves words that are due for review for a user
 	FindDueWords(ctx context.Context, userID user.ID, limit int) ([]*UserProgress, error)
 
+	// FindNewWords retrieves words that don't have progress records yet
+	FindNewWords(ctx context.Context, userID user.ID, limit int) ([]*UserProgress, error)
+
 	// FindProgressByUser retrieves all progress for a user
 	FindProgressByUser(ctx context.Context, userID user.ID) ([]*UserProgress, error)
 
@@ -35,6 +38,9 @@ type Repository interface {
 
 	// GetUsersWithProgress retrieves all users who have learning progress
 	GetUsersWithProgress(ctx context.Context) ([]user.ID, error)
+
+	// SaveProgressAndHistory persists both user progress and review history
+	SaveProgressAndHistory(ctx context.Context, progress *UserProgress, history *ReviewHistory) error
 }
 
 // UserStats represents learning statistics for a user

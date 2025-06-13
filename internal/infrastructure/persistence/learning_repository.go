@@ -135,102 +135,109 @@ func (r *learningRepository) FindProgress(ctx context.Context, userID user.ID, w
 // FindDueWords retrieves words that are due for review for a user
 func (r *learningRepository) FindDueWords(ctx context.Context, userID user.ID, limit int) ([]*learning.UserProgress, error) {
 	query := `
-		WITH due_words AS (
-			SELECT up.id, up.user_id, up.word_id, up.stability, up.difficulty, 
-				   up.last_review, up.due_date, up.review_count, up.lapses, up.state, 
-				   up.created_at, up.updated_at
-			FROM user_progress up
-			WHERE up.user_id = ? AND up.due_date <= CURRENT_TIMESTAMP
-		),
-		new_words AS (
-			SELECT 0 as id, ? as user_id, w.id as word_id, 1.0 as stability, 5.0 as difficulty,
-				   CURRENT_TIMESTAMP as last_review, CURRENT_TIMESTAMP as due_date,
-				   0 as review_count, 0 as lapses, 'new' as state,
-				   CURRENT_TIMESTAMP as created_at, CURRENT_TIMESTAMP as updated_at
-			FROM words w
-			WHERE w.id NOT IN (SELECT word_id FROM user_progress WHERE user_id = ?)
-		),
-		all_available AS (
-			SELECT * FROM due_words
-			UNION ALL
-			SELECT * FROM new_words
-		)
-		SELECT * FROM all_available
-		ORDER BY 
-			-- Prioritize due words over new words, but still randomize within each group
-			CASE WHEN id > 0 THEN 0 ELSE 1 END,
-			-- Deprioritize words reviewed in the last 10 minutes to reduce immediate repetition
-			CASE WHEN id > 0 AND last_review > datetime('now', '-10 minutes') THEN 2 ELSE 0 END,
-			-- Add randomization based on word_id to ensure different ordering each time
-			ABS(RANDOM() * word_id) % 1000
+		SELECT id, user_id, word_id, stability, difficulty, last_review, due_date, 
+		       review_count, lapses, state, created_at, updated_at
+		FROM user_progress 
+		WHERE user_id = ? AND due_date <= CURRENT_TIMESTAMP
+		ORDER BY due_date ASC
 		LIMIT ?
 	`
 
-	rows, err := r.db.QueryContext(ctx, query,
-		int64(userID),                // for due_words
-		int64(userID), int64(userID), // for new_words
-		limit) // final limit
+	rows, err := r.db.QueryContext(ctx, query, int64(userID), limit)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query due words: %w", err)
+		return nil, fmt.Errorf("failed to query due progress words: %w", err)
 	}
 	defer rows.Close()
 
 	var progressList []*learning.UserProgress
-
 	for rows.Next() {
-		var id learning.ID
-		var uID user.ID
-		var wID vocabulary.ID
-		var stability, difficulty float64
-		var lastReviewStr, dueDateStr, createdAtStr, updatedAtStr sql.NullString
-		var reviewCount, lapses int
-		var state string
-
-		err := rows.Scan(&id, &uID, &wID, &stability, &difficulty, &lastReviewStr, &dueDateStr,
-			&reviewCount, &lapses, &state, &createdAtStr, &updatedAtStr)
+		progress, err := r.scanProgressRow(rows, userID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan progress: %w", err)
+			return nil, err
 		}
-
-		// Parse datetime strings
-		lastReview, err := r.parseDateTime(lastReviewStr)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse last_review: %w", err)
-		}
-
-		dueDate, err := r.parseDateTime(dueDateStr)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse due_date: %w", err)
-		}
-
-		// Parse but don't use createdAt and updatedAt since they're not used in this context
-		_, err = r.parseDateTime(createdAtStr)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse created_at: %w", err)
-		}
-
-		_, err = r.parseDateTime(updatedAtStr)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse updated_at: %w", err)
-		}
-
-		progress := learning.NewUserProgress(userID, wID)
-		if id > 0 {
-			progress.SetID(id)
-		}
-
-		// Set FSRS card data
-		fsrsCard := progress.FSRSCard()
-		r.setFSRSCardFromDB(fsrsCard, stability, difficulty, lastReview, dueDate, reviewCount, lapses, state)
-
 		progressList = append(progressList, progress)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows error: %w", err)
+	return progressList, rows.Err()
+}
+
+// FindNewWords gets words that don't have progress records yet
+func (r *learningRepository) FindNewWords(ctx context.Context, userID user.ID, limit int) ([]*learning.UserProgress, error) {
+	query := `
+		SELECT w.id as word_id
+		FROM words w
+		WHERE w.id NOT IN (SELECT word_id FROM user_progress WHERE user_id = ?)
+		ORDER BY RANDOM()
+		LIMIT ?
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, int64(userID), limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query new words: %w", err)
+	}
+	defer rows.Close()
+
+	var progressList []*learning.UserProgress
+	for rows.Next() {
+		var wordID vocabulary.ID
+		if err := rows.Scan(&wordID); err != nil {
+			return nil, fmt.Errorf("failed to scan word ID: %w", err)
+		}
+
+		// Create new progress for this word
+		progress := learning.NewUserProgress(userID, wordID)
+		progressList = append(progressList, progress)
 	}
 
-	return progressList, nil
+	return progressList, rows.Err()
+}
+
+// scanProgressRow scans a progress row from the database
+func (r *learningRepository) scanProgressRow(rows *sql.Rows, userID user.ID) (*learning.UserProgress, error) {
+	var id learning.ID
+	var uID user.ID
+	var wID vocabulary.ID
+	var stability, difficulty float64
+	var lastReviewStr, dueDateStr, createdAtStr, updatedAtStr sql.NullString
+	var reviewCount, lapses int
+	var state string
+
+	err := rows.Scan(&id, &uID, &wID, &stability, &difficulty, &lastReviewStr, &dueDateStr,
+		&reviewCount, &lapses, &state, &createdAtStr, &updatedAtStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan progress: %w", err)
+	}
+
+	// Parse datetime strings
+	lastReview, err := r.parseDateTime(lastReviewStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse last_review: %w", err)
+	}
+
+	dueDate, err := r.parseDateTime(dueDateStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse due_date: %w", err)
+	}
+
+	// Parse but don't use createdAt and updatedAt since they're not used in this context
+	_, err = r.parseDateTime(createdAtStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse created_at: %w", err)
+	}
+
+	_, err = r.parseDateTime(updatedAtStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse updated_at: %w", err)
+	}
+
+	progress := learning.NewUserProgress(userID, wID)
+	progress.SetID(id)
+
+	// Set FSRS card data
+	fsrsCard := progress.FSRSCard()
+	r.setFSRSCardFromDB(fsrsCard, stability, difficulty, lastReview, dueDate, reviewCount, lapses, state)
+
+	return progress, nil
 }
 
 // FindProgressByUser retrieves all progress for a user
@@ -535,4 +542,80 @@ func (r *learningRepository) parseDateTime(str sql.NullString) (time.Time, error
 	}
 
 	return time.Time{}, fmt.Errorf("unable to parse datetime: %s", str.String)
+}
+
+// SaveProgressAndHistory saves both progress and review history in a single transaction
+func (r *learningRepository) SaveProgressAndHistory(ctx context.Context, progress *learning.UserProgress, history *learning.ReviewHistory) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Save or update progress
+	fsrsCard := progress.FSRSCard()
+	if progress.ID() == 0 {
+		query := `
+			INSERT INTO user_progress 
+			(user_id, word_id, stability, difficulty, last_review, due_date, review_count, lapses, state, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		`
+		result, err := tx.ExecContext(ctx, query,
+			int64(progress.UserID()), int64(progress.WordID()),
+			fsrsCard.Stability(), fsrsCard.Difficulty(),
+			fsrsCard.LastReview(), fsrsCard.DueDate(),
+			fsrsCard.ReviewCount(), fsrsCard.Lapses(), string(fsrsCard.State()),
+			progress.CreatedAt(), progress.UpdatedAt())
+
+		if err != nil {
+			return fmt.Errorf("failed to save progress: %w", err)
+		}
+
+		id, err := result.LastInsertId()
+		if err != nil {
+			return fmt.Errorf("failed to get progress ID: %w", err)
+		}
+		progress.SetID(learning.ID(id))
+	} else {
+		query := `
+			UPDATE user_progress 
+			SET stability = ?, difficulty = ?, last_review = ?, due_date = ?, 
+				review_count = ?, lapses = ?, state = ?, updated_at = ?
+			WHERE id = ?
+		`
+		_, err = tx.ExecContext(ctx, query,
+			fsrsCard.Stability(), fsrsCard.Difficulty(),
+			fsrsCard.LastReview(), fsrsCard.DueDate(),
+			fsrsCard.ReviewCount(), fsrsCard.Lapses(), string(fsrsCard.State()),
+			progress.UpdatedAt(), int64(progress.ID()))
+
+		if err != nil {
+			return fmt.Errorf("failed to update progress: %w", err)
+		}
+	}
+
+	// Save review history
+	query := `
+		INSERT INTO review_history (user_id, word_id, rating, review_time, response_time_ms)
+		VALUES (?, ?, ?, ?, ?)
+	`
+	result, err := tx.ExecContext(ctx, query,
+		int64(history.UserID()), int64(history.WordID()),
+		int(history.Rating()), history.ReviewTime(), history.ResponseTimeMs())
+
+	if err != nil {
+		return fmt.Errorf("failed to save review history: %w", err)
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("failed to get review history ID: %w", err)
+	}
+	history.SetID(learning.ID(id))
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }

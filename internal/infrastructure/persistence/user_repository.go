@@ -112,3 +112,56 @@ func (r *userRepository) Update(ctx context.Context, u *user.User) error {
 
 	return nil
 }
+
+// UpdateLastActive updates the last active time of a user
+func (r *userRepository) UpdateLastActive(ctx context.Context, id user.ID) error {
+	query := `
+		UPDATE users 
+		SET last_active = CURRENT_TIMESTAMP
+		WHERE id = ?
+	`
+
+	_, err := r.db.ExecContext(ctx, query, int64(id))
+	if err != nil {
+		return fmt.Errorf("failed to update last active time: %w", err)
+	}
+
+	return nil
+}
+
+// GetAllUsers retrieves all users from storage
+func (r *userRepository) GetAllUsers(ctx context.Context) ([]*user.User, error) {
+	query := `
+		SELECT id, telegram_id, username, first_name, last_name, language_code, created_at, last_active
+		FROM users
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query users: %w", err)
+	}
+	defer rows.Close()
+
+	var users []*user.User
+	for rows.Next() {
+		var id user.ID
+		var telegramID int64
+		var username, firstName, lastName, languageCode string
+		var createdAt, lastActive time.Time
+
+		err := rows.Scan(&id, &telegramID, &username, &firstName, &lastName, &languageCode, &createdAt, &lastActive)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+
+		u := user.NewUser(user.TelegramID(telegramID), username, firstName, lastName, languageCode)
+		u.SetID(id)
+		users = append(users, u)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating users: %w", err)
+	}
+
+	return users, nil
+}

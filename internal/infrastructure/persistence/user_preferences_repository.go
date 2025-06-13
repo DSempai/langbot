@@ -61,23 +61,16 @@ func (r *userPreferencesRepository) SavePreferences(ctx context.Context, prefere
 	}
 	defer tx.Rollback()
 
-	// Delete existing preferences
-	deleteQuery := `DELETE FROM user_preferences WHERE user_id = ?`
-	_, err = tx.ExecContext(ctx, deleteQuery, int64(preferences.UserID()))
-	if err != nil {
-		return fmt.Errorf("failed to delete existing preferences: %w", err)
-	}
-
-	// Insert new preferences
+	// Use INSERT OR REPLACE to handle both new and existing preferences
 	insertQuery := `
-		INSERT INTO user_preferences (user_id, preference_key, preference_value, updated_at)
+		INSERT OR REPLACE INTO user_preferences (user_id, preference_key, preference_value, updated_at)
 		VALUES (?, ?, ?, CURRENT_TIMESTAMP)
 	`
 
 	for key, value := range preferences.GetAllPreferences() {
 		_, err = tx.ExecContext(ctx, insertQuery, int64(preferences.UserID()), key, value)
 		if err != nil {
-			return fmt.Errorf("failed to insert preference %s: %w", key, err)
+			return fmt.Errorf("failed to save preference %s: %w", key, err)
 		}
 	}
 
@@ -92,10 +85,8 @@ func (r *userPreferencesRepository) SavePreferences(ctx context.Context, prefere
 // UpdatePreference updates a single preference
 func (r *userPreferencesRepository) UpdatePreference(ctx context.Context, userID user.ID, key, value string) error {
 	query := `
-		INSERT INTO user_preferences (user_id, preference_key, preference_value, updated_at)
+		INSERT OR REPLACE INTO user_preferences (user_id, preference_key, preference_value, updated_at)
 		VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-		ON CONFLICT(user_id, preference_key) 
-		DO UPDATE SET preference_value = excluded.preference_value, updated_at = CURRENT_TIMESTAMP
 	`
 
 	_, err := r.db.ExecContext(ctx, query, int64(userID), key, value)

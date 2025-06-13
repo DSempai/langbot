@@ -16,7 +16,7 @@
       "dutch_example": "werken → werkte, maken → maakte",
       "english_example": "to work → worked, to make → made",
       "category": "verbs",
-      "applicable_categories": ["verbs"],
+      "applicable_categories": ["verbs_action", "verbs_infinitive"],
       "word_patterns": ["-en"],
       "specific_words": ["werken", "maken", "hebben", "zijn", "gaan", "komen", "kopen", "spelen"]
     },
@@ -46,7 +46,7 @@
       "dutch_example": "Ik kan Nederlands spreken",
       "english_example": "I can speak Dutch",
       "category": "verbs",
-      "applicable_categories": ["verbs"],
+      "applicable_categories": ["verbs_action", "verbs_infinitive"],
       "word_patterns": [],
       "specific_words": ["kunnen", "willen", "moeten", "mogen", "zullen"]
     },
@@ -56,7 +56,7 @@
       "dutch_example": "opstaan → Ik sta om 7 uur op",
       "english_example": "to get up → I get up at 7 o'clock",
       "category": "verbs",
-      "applicable_categories": ["verbs"],
+      "applicable_categories": ["verbs_action", "verbs_infinitive"],
       "word_patterns": ["op-", "aan-", "uit-", "mee-", "af-"],
       "specific_words": ["opstaan", "aankomen", "uitstaan", "meekomen"]
     },
@@ -76,7 +76,7 @@
       "dutch_example": "werken → gewerkt, maken → gemaakt",
       "english_example": "to work → worked, to make → made",
       "category": "verbs",
-      "applicable_categories": ["verbs"],
+      "applicable_categories": ["verbs_action", "verbs_infinitive"],
       "word_patterns": ["-en"],
       "specific_words": ["werken", "maken", "spelen", "kopen", "lopen", "spreken"]
     },
@@ -86,7 +86,7 @@
       "dutch_example": "Vandaag ga ik naar school",
       "english_example": "Today I go to school",
       "category": "word_order",
-      "applicable_categories": ["verbs"],
+      "applicable_categories": ["verbs_action", "verbs_infinitive"],
       "word_patterns": [],
       "specific_words": ["gaan", "zijn", "hebben", "worden"]
     },
@@ -156,9 +156,249 @@
       "dutch_example": "in het huis (location), naar het huis (direction)",
       "english_example": "in the house (location), to the house (direction)",
       "category": "prepositions",
-      "applicable_categories": ["particles"],
+      "applicable_categories": ["prepositions"],
       "word_patterns": [],
       "specific_words": ["in", "op", "aan", "naar", "van", "met"]
+    },
+    {
+      "title": "Road Signs and Traffic Terms",
+      "explanation": "Dutch road signs often use compound words. 'Verbod' means prohibition, 'weg' means road, 'verkeer' means traffic.",
+      "dutch_example": "parkeerverbod, eenrichtingsverkeer, verkeerslicht",
+      "english_example": "parking prohibition, one-way traffic, traffic light",
+      "category": "general",
+      "applicable_categories": ["road_signs"],
+      "word_patterns": ["-verbod", "-verkeer", "-weg"],
+      "specific_words": ["stop", "parkeren", "parkeerverbod", "eenrichtingsverkeer", "verkeerslicht", "rotonde", "snelweg", "uitgang", "ingang"]
+    },
+    {
+      "title": "Colors with Articles",
+      "explanation": "Most color words use 'de' article when used as nouns: de kleur (color). Colors ending in -s often use 'het': het grijs, het roze.",
+      "dutch_example": "de kleur rood, het grijs, het roze",
+      "english_example": "the color red, the gray, the pink",
+      "category": "articles",
+      "applicable_categories": ["colors"],
+      "word_patterns": [],
+      "specific_words": ["rood", "blauw", "groen", "geel", "zwart", "wit", "bruin", "oranje", "paars", "roze", "grijs"]
+    },
+    {
+      "title": "Food Articles Pattern",
+      "explanation": "Most food items use 'de': de appel, de kaas. Liquids and mass nouns often use 'het': het brood, het vlees, het water.",
+      "dutch_example": "de appel, het brood, het vlees",
+      "english_example": "the apple, the bread, the meat",
+      "category": "articles",
+      "applicable_categories": ["food"],
+      "word_patterns": [],
+      "specific_words": ["appel", "brood", "kaas", "melk", "koffie", "thee", "water", "vlees", "vis", "ei"]
+    },
+    {
+      "title": "Action Verbs vs Infinitive Forms",
+      "explanation": "In Dutch, action verbs change form: 'Ik loop' (I walk) vs 'lopen' (to walk). Remember: 'ik' removes the -n ending.",
+      "dutch_example": "lopen → ik loop, werken → ik werk",
+      "english_example": "to walk → I walk, to work → I work",
+      "category": "verbs",
+      "applicable_categories": ["verbs_action", "verbs_infinitive"],
+      "word_patterns": ["-en"],
+      "specific_words": ["lopen", "rennen", "werken", "spreken", "luisteren", "kijken", "drinken", "eten"]
+    },
+    {
+      "title": "Color Adjectives in Dutch",
+      "explanation": "Color words can be adjectives or nouns. As adjectives, they follow normal adjective rules: add -e before definite nouns.",
+      "dutch_example": "de rode auto, een rood huis, blauwe ogen",
+      "english_example": "the red car, a red house, blue eyes",
+      "category": "adjectives",
+      "applicable_categories": ["colors"],
+      "word_patterns": [],
+      "specific_words": ["rood", "blauw", "groen", "geel", "zwart", "wit", "bruin"]
+    },
+    {
+      "title": "Comparative Adjectives",
+      "explanation": "Dutch comparatives add -er, superlatives add -st. Use 'dan' for 'than': groter dan (bigger than).",
+      "dutch_example": "groot → groter → grootst, goed → beter → best",
+      "english_example": "big → bigger → biggest, good → better → best",
+      "category": "adjectives",
+      "applicable_categories": ["adjectives"],
+      "word_patterns": [],
+      "specific_words": ["groot", "klein", "goed", "slecht", "oud", "nieuw", "snel", "langzaam"]
+    },
+    {
+      "title": "Animal Gender and Articles",
+      "explanation": "Most animals use 'de': de hond, de kat. Some use 'het': het paard, het varken, het schaap. Baby animals often use 'het'.",
+      "dutch_example": "de hond, het paard, het lammetje",
+      "english_example": "the dog, the horse, the little lamb",
+      "category": "articles",
+      "applicable_categories": ["animals"],
+      "word_patterns": ["-je", "-tje"],
+      "specific_words": ["paard", "varken", "schaap", "konijn", "lammetje", "varkentje"]
+    },
+    {
+      "title": "Animal Sounds in Dutch",
+      "explanation": "Dutch animal sounds are different from English. Dogs say 'woef', cats say 'miauw', cows say 'boe'.",
+      "dutch_example": "De hond zegt woef, de kat zegt miauw",
+      "english_example": "The dog says woof, the cat says meow",
+      "category": "general",
+      "applicable_categories": ["animals"],
+      "word_patterns": [],
+      "specific_words": ["hond", "kat", "koe", "schaap", "eend", "varken"]
+    },
+    {
+      "title": "Body Parts with Possessives",
+      "explanation": "Dutch often uses definite articles with body parts instead of possessives: 'Ik was de handen' (I wash the hands) not 'mijn handen'.",
+      "dutch_example": "Ik was de handen, Hij doet de ogen dicht",
+      "english_example": "I wash my hands, He closes his eyes",
+      "category": "articles",
+      "applicable_categories": ["body"],
+      "word_patterns": [],
+      "specific_words": ["handen", "ogen", "voeten", "tanden", "haar"]
+    },
+    {
+      "title": "Paired Body Parts",
+      "explanation": "Body parts that come in pairs are often plural in Dutch: de ogen (eyes), de oren (ears), de handen (hands), de voeten (feet).",
+      "dutch_example": "de ogen, de oren, de handen, de voeten",
+      "english_example": "the eyes, the ears, the hands, the feet",
+      "category": "plurals",
+      "applicable_categories": ["body"],
+      "word_patterns": [],
+      "specific_words": ["oog", "oor", "hand", "voet", "arm", "been", "vinger", "teen"]
+    },
+    {
+      "title": "Family Relationships Gender",
+      "explanation": "Dutch has gender-specific family terms: broer/zus, oom/tante, neef/nicht. 'Neef' can mean both nephew and male cousin.",
+      "dutch_example": "mijn broer en zus, oom Jan en tante Marie",
+      "english_example": "my brother and sister, uncle Jan and aunt Marie",
+      "category": "general",
+      "applicable_categories": ["family", "people"],
+      "word_patterns": [],
+      "specific_words": ["broer", "zus", "oom", "tante", "neef", "nicht", "vader", "moeder"]
+    },
+    {
+      "title": "Family Articles Pattern",
+      "explanation": "Most family members use 'de': de vader, de moeder, de oom. Exception: 'het kind' (the child) uses 'het'.",
+      "dutch_example": "de vader, de moeder, het kind",
+      "english_example": "the father, the mother, the child",
+      "category": "articles",
+      "applicable_categories": ["family"],
+      "word_patterns": [],
+      "specific_words": ["vader", "moeder", "broer", "zus", "oom", "tante", "kind", "baby"]
+    },
+    {
+      "title": "Dutch Meal Times",
+      "explanation": "Dutch meals: ontbijt (breakfast), lunch (lunch), diner/avondeten (dinner). 'Eten' means both 'food' and 'to eat'.",
+      "dutch_example": "het ontbijt, de lunch, het diner",
+      "english_example": "the breakfast, the lunch, the dinner",
+      "category": "general",
+      "applicable_categories": ["food"],
+      "word_patterns": [],
+      "specific_words": ["ontbijt", "lunch", "diner", "avondeten", "eten"]
+    },
+    {
+      "title": "Food Containers and Quantities",
+      "explanation": "Dutch uses specific containers: een glas melk (glass of milk), een kopje thee (cup of tea), een fles water (bottle of water).",
+      "dutch_example": "een glas melk, een kopje koffie, een fles bier",
+      "english_example": "a glass of milk, a cup of coffee, a bottle of beer",
+      "category": "general",
+      "applicable_categories": ["food", "objects"],
+      "word_patterns": [],
+      "specific_words": ["glas", "kopje", "fles", "melk", "koffie", "thee", "water", "bier"]
+    },
+    {
+      "title": "Furniture and Articles",
+      "explanation": "Most furniture uses 'de': de tafel, de stoel, de bank. Some use 'het': het bed, het bureau. Size can affect article choice.",
+      "dutch_example": "de tafel, het bed, de stoel",
+      "english_example": "the table, the bed, the chair",
+      "category": "articles",
+      "applicable_categories": ["home", "objects"],
+      "word_patterns": [],
+      "specific_words": ["tafel", "bed", "stoel", "bank", "bureau", "kast"]
+    },
+    {
+      "title": "Cleaning and Household Verbs",
+      "explanation": "Dutch has specific verbs for cleaning: schoonmaken (to clean), stofzuigen (to vacuum), afwassen (to wash dishes).",
+      "dutch_example": "Ik maak het huis schoon, zij zuigt stof",
+      "english_example": "I clean the house, she vacuums",
+      "category": "verbs",
+      "applicable_categories": ["home", "verbs_action"],
+      "word_patterns": [],
+      "specific_words": ["schoonmaken", "stofzuigen", "afwassen", "koken", "wassen"]
+    },
+    {
+      "title": "Professional Titles",
+      "explanation": "Many professions have different forms for men/women: leraar/lerares (teacher), dokter/dokter (doctor - same for both).",
+      "dutch_example": "de leraar, de lerares, de dokter",
+      "english_example": "the male teacher, the female teacher, the doctor",
+      "category": "general",
+      "applicable_categories": ["people"],
+      "word_patterns": ["-aar/-ares", "-er/-ster"],
+      "specific_words": ["leraar", "lerares", "dokter", "verpleegster", "arbeider"]
+    },
+    {
+      "title": "People and Politeness",
+      "explanation": "Dutch uses 'meneer' (sir/Mr.), 'mevrouw' (madam/Mrs.), 'juffrouw' (miss). Always use with articles: de meneer, de mevrouw.",
+      "dutch_example": "de meneer, de mevrouw, de juffrouw",
+      "english_example": "the gentleman, the lady, the miss",
+      "category": "general",
+      "applicable_categories": ["people"],
+      "word_patterns": [],
+      "specific_words": ["meneer", "mevrouw", "juffrouw", "man", "vrouw"]
+    },
+    {
+      "title": "Prepositions with Time",
+      "explanation": "Dutch uses different prepositions for time: 'om' for exact times, 'in' for months/years, 'op' for days.",
+      "dutch_example": "om drie uur, in januari, op maandag",
+      "english_example": "at three o'clock, in January, on Monday",
+      "category": "prepositions",
+      "applicable_categories": ["prepositions"],
+      "word_patterns": [],
+      "specific_words": ["om", "in", "op", "voor", "na", "tijdens"]
+    },
+    {
+      "title": "Movement and Direction",
+      "explanation": "Dutch uses 'naar' for going to places, 'van' for coming from places, 'door' for going through.",
+      "dutch_example": "naar huis, van school, door het park",
+      "english_example": "to home, from school, through the park",
+      "category": "prepositions",
+      "applicable_categories": ["prepositions"],
+      "word_patterns": [],
+      "specific_words": ["naar", "van", "door", "over", "onder", "tussen"]
+    },
+    {
+      "title": "Traffic and Transportation",
+      "explanation": "Dutch transportation terms: 'met de auto' (by car), 'op de fiets' (by bike), 'met het openbaar vervoer' (by public transport).",
+      "dutch_example": "met de auto, op de fiets, met de trein",
+      "english_example": "by car, by bike, by train",
+      "category": "prepositions",
+      "applicable_categories": ["road_signs"],
+      "word_patterns": [],
+      "specific_words": ["auto", "fiets", "trein", "bus", "metro"]
+    },
+    {
+      "title": "Road Signs Instructions",
+      "explanation": "Dutch road signs use imperative form: 'Stop' (stop), 'Geef voorrang' (yield), 'Verboden in te rijden' (no entry).",
+      "dutch_example": "Stop, Geef voorrang, Verboden in te rijden",
+      "english_example": "Stop, Give way, No entry",
+      "category": "general",
+      "applicable_categories": ["road_signs"],
+      "word_patterns": ["Verboden-", "Geef-"],
+      "specific_words": ["stop", "voorrang", "verboden", "uitgang", "ingang", "omleiding"]
+    },
+    {
+      "title": "Common Objects Articles",
+      "explanation": "Common objects pattern: Most tools use 'de' (de hamer, de schroef), most containers use 'de' (de tas, de doos), books use 'het' (het boek).",
+      "dutch_example": "de hamer, de tas, het boek",
+      "english_example": "the hammer, the bag, the book",
+      "category": "articles",
+      "applicable_categories": ["objects"],
+      "word_patterns": [],
+      "specific_words": ["hamer", "tas", "boek", "pen", "telefoon", "sleutel"]
+    },
+    {
+      "title": "Diminutives of Objects",
+      "explanation": "Small objects often get diminutive forms: sleuteltje (little key), tasje (little bag), boekje (booklet). All use 'het'.",
+      "dutch_example": "het sleuteltje, het tasje, het boekje",
+      "english_example": "the little key, the little bag, the booklet",
+      "category": "articles",
+      "applicable_categories": ["objects"],
+      "word_patterns": ["-tje", "-je"],
+      "specific_words": ["sleuteltje", "tasje", "boekje", "kopje", "glaasje"]
     }
   ]
 } 

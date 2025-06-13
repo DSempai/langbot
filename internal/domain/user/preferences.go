@@ -7,8 +7,16 @@ import (
 
 // Preference keys constants
 const (
-	PrefGrammarTipsEnabled    = "grammar_tips_enabled"
-	PrefSmartRemindersEnabled = "smart_reminders_enabled"
+	PrefGrammarTipsEnabled        = "grammar_tips_enabled"
+	PrefSmartRemindersEnabled     = "smart_reminders_enabled"
+	PreferenceKeyReminderInterval = "reminder_interval_minutes"
+)
+
+// Default values
+const (
+	DefaultGrammarTipsEnabled    = true
+	DefaultSmartRemindersEnabled = true
+	DefaultReminderInterval      = 30
 )
 
 // UserPreference represents a user preference
@@ -30,8 +38,9 @@ type UserPreferences struct {
 // NewUserPreferences creates a new user preferences with default values
 func NewUserPreferences(userID ID) *UserPreferences {
 	defaultPrefs := map[string]string{
-		PrefGrammarTipsEnabled:    "true",
-		PrefSmartRemindersEnabled: "true",
+		PrefGrammarTipsEnabled:        "true",
+		PrefSmartRemindersEnabled:     "true",
+		PreferenceKeyReminderInterval: strconv.Itoa(DefaultReminderInterval),
 	}
 
 	return &UserPreferences{
@@ -115,4 +124,25 @@ func (up *UserPreferences) ToggleSmartReminders() bool {
 	newValue := !up.SmartRemindersEnabled()
 	up.SetSmartRemindersEnabled(newValue)
 	return newValue
+}
+
+// GetReminderInterval gets the reminder interval in minutes
+func (p *UserPreferences) GetReminderInterval() int {
+	value, exists := p.preferences[PreferenceKeyReminderInterval]
+	if !exists {
+		return DefaultReminderInterval
+	}
+	interval, err := strconv.Atoi(value)
+	if err != nil || interval < 1 {
+		return DefaultReminderInterval
+	}
+	return interval
+}
+
+// SetReminderInterval sets the reminder interval in minutes
+func (p *UserPreferences) SetReminderInterval(minutes int) {
+	if minutes < 1 {
+		minutes = DefaultReminderInterval
+	}
+	p.preferences[PreferenceKeyReminderInterval] = strconv.Itoa(minutes)
 }

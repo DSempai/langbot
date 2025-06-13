@@ -22,7 +22,11 @@ func main() {
 	}
 
 	// Initialize database
-	db, err := persistence.NewSQLiteDB("dutch_learning.db")
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "dutch_learning.db"
+	}
+	db, err := persistence.NewSQLiteDB(dbPath)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
@@ -76,10 +80,10 @@ func main() {
 	}
 
 	// Initialize reminder service
-	reminderUseCase := usecases.NewReminderUseCase(bot, userRepo, learningRepo, nil)
+	reminderUseCase := usecases.NewReminderUseCase(bot, userRepo, learningRepo, preferencesRepo, nil)
 
-	// Initialize handlers
-	handler := handlers.NewBotHandler(bot, userUseCase, learningUseCase)
+	// Initialize handler
+	handler := handlers.NewBotHandler(bot, userUseCase, learningUseCase, preferencesRepo)
 
 	// Start bot
 	log.Printf("Starting Dutch Learning Bot...")

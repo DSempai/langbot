@@ -62,20 +62,21 @@ const (
 
 // GetNextDueWord retrieves the next word due for review
 func (uc *LearningUseCase) GetNextDueWord(ctx context.Context, userID user.ID) (*LearningSession, error) {
-	// Get due words for the user
-	progressList, err := uc.learningRepo.FindDueWords(ctx, userID, 1)
+	// Get available words for learning using business logic
+	availableProgress, err := uc.getAvailableWordsForLearning(ctx, userID, 10) // Get more than 1 to have options
 	if err != nil {
-		return nil, fmt.Errorf("failed to get due words: %w", err)
+		return nil, fmt.Errorf("failed to get available words: %w", err)
 	}
 
-	if len(progressList) == 0 {
-		return nil, nil // No words due
+	if len(availableProgress) == 0 {
+		return nil, nil // No words available
 	}
 
-	progress := progressList[0]
+	// Select the best word based on priority
+	selectedProgress := uc.selectBestWordForLearning(availableProgress)
 
 	// Get the word details
-	word, err := uc.vocabularyRepo.FindByID(ctx, progress.WordID())
+	word, err := uc.vocabularyRepo.FindByID(ctx, selectedProgress.WordID())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get word: %w", err)
 	}
@@ -95,7 +96,7 @@ func (uc *LearningUseCase) GetNextDueWord(ctx context.Context, userID user.ID) (
 	session := &LearningSession{
 		UserID:       userID,
 		Word:         word,
-		Progress:     progress,
+		Progress:     selectedProgress,
 		QuestionType: questionType,
 		StartTime:    time.Now(),
 		Options:      options,
@@ -118,6 +119,70 @@ func (uc *LearningUseCase) GetNextDueWord(ctx context.Context, userID user.ID) (
 	return session, nil
 }
 
+// getAvailableWordsForLearning gets words available for learning with business logic
+func (uc *LearningUseCase) getAvailableWordsForLearning(ctx context.Context, userID user.ID, maxWords int) ([]*learning.UserProgress, error) {
+	var allProgress []*learning.UserProgress
+
+	// First, get words that have progress and are due for review
+	dueProgress, err := uc.learningRepo.FindDueWords(ctx, userID, maxWords)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get due progress words: %w", err)
+	}
+	allProgress = append(allProgress, dueProgress...)
+
+	// If we need more words, get new words (without progress)
+	if len(allProgress) < maxWords {
+		remainingLimit := maxWords - len(allProgress)
+		newProgress, err := uc.learningRepo.FindNewWords(ctx, userID, remainingLimit)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get new words: %w", err)
+		}
+		allProgress = append(allProgress, newProgress...)
+	}
+
+	return allProgress, nil
+}
+
+// selectBestWordForLearning applies business logic for word selection and prioritization
+func (uc *LearningUseCase) selectBestWordForLearning(allProgress []*learning.UserProgress) *learning.UserProgress {
+	// Separate words into categories
+	var dueWords []*learning.UserProgress
+	var newWords []*learning.UserProgress
+	var recentlyReviewedWords []*learning.UserProgress
+
+	tenMinutesAgo := time.Now().Add(-10 * time.Minute)
+
+	for _, progress := range allProgress {
+		if progress.ID() == 0 {
+			// New word (no ID means it wasn't saved yet)
+			newWords = append(newWords, progress)
+		} else if progress.FSRSCard().LastReview().After(tenMinutesAgo) {
+			// Recently reviewed word (deprioritize)
+			recentlyReviewedWords = append(recentlyReviewedWords, progress)
+		} else {
+			// Due word that wasn't recently reviewed
+			dueWords = append(dueWords, progress)
+		}
+	}
+
+	// Priority order:
+	// 1. Due words (not recently reviewed)
+	// 2. New words
+	// 3. Recently reviewed words
+	if len(dueWords) > 0 {
+		return dueWords[0]
+	}
+	if len(newWords) > 0 {
+		return newWords[0]
+	}
+	if len(recentlyReviewedWords) > 0 {
+		return recentlyReviewedWords[0]
+	}
+
+	// Fallback (shouldn't happen if allProgress is not empty)
+	return allProgress[0]
+}
+
 // GetContextualGrammarTip gets a grammar tip that's relevant to the current word
 func (uc *LearningUseCase) GetContextualGrammarTip(ctx context.Context, word *vocabulary.Word, userID user.ID) (*grammar.GrammarTip, error) {
 	// First try to find tips that specifically apply to this word
@@ -127,9 +192,13 @@ func (uc *LearningUseCase) GetContextualGrammarTip(ctx context.Context, word *vo
 	}
 
 	if len(applicableTips) > 0 {
-		// Return a random applicable tip (no difficulty filtering)
-		randomIndex := time.Now().UnixNano() % int64(len(applicableTips))
-		return applicableTips[randomIndex], nil
+		// Return a random applicable tip using better randomization
+		randomIndexBig, err := rand.Int(rand.Reader, big.NewInt(int64(len(applicableTips))))
+		if err != nil {
+			// Fallback to time-based if crypto/rand fails
+			randomIndexBig = big.NewInt(time.Now().UnixNano() % int64(len(applicableTips)))
+		}
+		return applicableTips[randomIndexBig.Int64()], nil
 	}
 
 	// If no applicable tips found, don't show a tip (better than irrelevant tip)
@@ -263,25 +332,9 @@ func (uc *LearningUseCase) ProcessReview(
 	responseTime time.Duration,
 ) error {
 	// Process the review
-	result := session.Progress.Review(rating)
+	session.Progress.Review(rating)
 
-	// Save or update progress in repository
-	var err error
-	if session.Progress.ID() == 0 {
-		// This is a new word, save it to the database
-		err = uc.learningRepo.SaveProgress(ctx, session.Progress)
-		if err != nil {
-			return fmt.Errorf("failed to save new progress: %w", err)
-		}
-	} else {
-		// This is an existing word, update it
-		err = uc.learningRepo.UpdateProgress(ctx, session.Progress)
-		if err != nil {
-			return fmt.Errorf("failed to update progress: %w", err)
-		}
-	}
-
-	// Save review history
+	// Create review history
 	history := learning.NewReviewHistory(
 		session.UserID,
 		session.Word.ID(),
@@ -289,13 +342,11 @@ func (uc *LearningUseCase) ProcessReview(
 		responseTime,
 	)
 
-	err = uc.learningRepo.SaveReviewHistory(ctx, history)
+	// Save both progress and history in a single transaction
+	err := uc.learningRepo.SaveProgressAndHistory(ctx, session.Progress, history)
 	if err != nil {
-		return fmt.Errorf("failed to save review history: %w", err)
+		return fmt.Errorf("failed to save progress and history: %w", err)
 	}
-
-	// Update result with the new card state (if needed for further processing)
-	_ = result
 
 	return nil
 }

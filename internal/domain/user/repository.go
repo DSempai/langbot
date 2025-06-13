@@ -15,4 +15,10 @@ type Repository interface {
 
 	// Update updates an existing user
 	Update(ctx context.Context, user *User) error
+
+	// UpdateLastActive updates the last active time of a user
+	UpdateLastActive(ctx context.Context, id ID) error
+
+	// GetAllUsers retrieves all users from storage
+	GetAllUsers(ctx context.Context) ([]*User, error)
 }
