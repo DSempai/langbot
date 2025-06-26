@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -80,6 +81,77 @@ func (ct *clickTracker) cleanup() {
 // Global click tracker instance
 var globalClickTracker = newClickTracker()
 
+// isPhrase checks if the given text contains spaces, indicating it's a phrase rather than a single word
+func isPhrase(text string) bool {
+	return strings.Contains(text, " ")
+}
+
+// createKeyboardForOptions creates the appropriate keyboard layout based on whether we're dealing with phrases
+func createKeyboardForOptions(options []string, isForPhrase bool) tgbotapi.InlineKeyboardMarkup {
+	if isForPhrase {
+		// For phrases, put each option on a separate line
+		return tgbotapi.NewInlineKeyboardMarkup(
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("A) "+options[0], "choice_0"),
+			),
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("B) "+options[1], "choice_1"),
+			),
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("C) "+options[2], "choice_2"),
+			),
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("D) "+options[3], "choice_3"),
+			),
+		)
+	} else {
+		// For single words, use the original 2x2 layout
+		return tgbotapi.NewInlineKeyboardMarkup(
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("A) "+options[0], "choice_0"),
+				tgbotapi.NewInlineKeyboardButtonData("B) "+options[1], "choice_1"),
+			),
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("C) "+options[2], "choice_2"),
+				tgbotapi.NewInlineKeyboardButtonData("D) "+options[3], "choice_3"),
+			),
+		)
+	}
+}
+
+// createKeyboardForOptionsWithEscaping creates the appropriate keyboard layout with markdown escaping
+func createKeyboardForOptionsWithEscaping(options []string, isForPhrase bool) tgbotapi.InlineKeyboardMarkup {
+	if isForPhrase {
+		// For phrases, put each option on a separate line
+		return tgbotapi.NewInlineKeyboardMarkup(
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("A) "+shared.EscapeMarkdown(options[0]), "choice_0"),
+			),
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("B) "+shared.EscapeMarkdown(options[1]), "choice_1"),
+			),
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("C) "+shared.EscapeMarkdown(options[2]), "choice_2"),
+			),
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("D) "+shared.EscapeMarkdown(options[3]), "choice_3"),
+			),
+		)
+	} else {
+		// For single words, use the original 2x2 layout
+		return tgbotapi.NewInlineKeyboardMarkup(
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("A) "+shared.EscapeMarkdown(options[0]), "choice_0"),
+				tgbotapi.NewInlineKeyboardButtonData("B) "+shared.EscapeMarkdown(options[1]), "choice_1"),
+			),
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("C) "+shared.EscapeMarkdown(options[2]), "choice_2"),
+				tgbotapi.NewInlineKeyboardButtonData("D) "+shared.EscapeMarkdown(options[3]), "choice_3"),
+			),
+		)
+	}
+}
+
 // sendQuestion sends a learning question to the user
 func (h *BotHandler) sendQuestion(chatID int64, session *usecases.LearningSession) {
 	var questionText string
@@ -109,17 +181,9 @@ func (h *BotHandler) sendQuestion(chatID int64, session *usecases.LearningSessio
 
 	fullText += "\n\nChoose the correct translation:"
 
-	// Create multiple choice keyboard
-	keyboard := tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("A) "+session.Options[0], "choice_0"),
-			tgbotapi.NewInlineKeyboardButtonData("B) "+session.Options[1], "choice_1"),
-		),
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("C) "+session.Options[2], "choice_2"),
-			tgbotapi.NewInlineKeyboardButtonData("D) "+session.Options[3], "choice_3"),
-		),
-	)
+	// Create keyboard based on whether the word is a phrase (check both English and Dutch)
+	phraseMode := isPhrase(session.Word.English()) || isPhrase(session.Word.Dutch())
+	keyboard := createKeyboardForOptions(session.Options, phraseMode)
 
 	h.bot.SendMessageWithKeyboard(chatID, fullText, keyboard)
 }
@@ -155,17 +219,9 @@ func (h *BotHandler) sendQuestionAsEdit(chatID int64, messageID int, session *us
 
 	fullText += "\n\nChoose the correct translation:"
 
-	// Create multiple choice keyboard
-	keyboard := tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("A) "+shared.EscapeMarkdown(session.Options[0]), "choice_0"),
-			tgbotapi.NewInlineKeyboardButtonData("B) "+shared.EscapeMarkdown(session.Options[1]), "choice_1"),
-		),
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("C) "+shared.EscapeMarkdown(session.Options[2]), "choice_2"),
-			tgbotapi.NewInlineKeyboardButtonData("D) "+shared.EscapeMarkdown(session.Options[3]), "choice_3"),
-		),
-	)
+	// Create keyboard based on whether the word is a phrase (check both English and Dutch)
+	phraseMode := isPhrase(session.Word.English()) || isPhrase(session.Word.Dutch())
+	keyboard := createKeyboardForOptionsWithEscaping(session.Options, phraseMode)
 
 	log.Printf("Sending question: %s", fullText)
 	err := h.bot.EditMessageWithKeyboard(chatID, messageID, fullText, keyboard)
